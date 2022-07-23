@@ -32,11 +32,16 @@ import com.slack.api.model.view.ViewState.SelectedOption;
 import com.slack.api.model.view.ViewState.Value;
 
 import java.util.List;
+import java.util.Locale;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -189,11 +194,10 @@ public class SlackApp {
 			}
 			
 			try {
-				
-				LocalDate date = LocalDate.parse(postAtDate);
+				ZonedDateTime zonedDateTime = ZonedDateTime.parse(postAtDate + "T09:00:00-04:00[America/New_York]");
 				String teamId = req.getPayload().getTeam().getId();
 				// TODO: check this is doing what I think its doing
-				HelloKitScheduled scheduled = helloKitSchedService.createNewHelloKitScheduled(date, username, selectedKitId, greeting, teamId);
+				HelloKitScheduled scheduled = helloKitSchedService.createNewHelloKitScheduled(zonedDateTime, username, selectedKitId, greeting, teamId);
 				helloKitSchedService.createScheduledMessage(ctx, scheduled);
 			} catch (NumberFormatException e) {
 				e.printStackTrace();

@@ -22,10 +22,16 @@ import com.slack.api.model.view.View;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.slack.api.model.block.Blocks.*;
@@ -93,9 +99,10 @@ public class AppHome {
 		for(HelloKitScheduled sched : scheduledNotSent) {
 			try {
 				UsersInfoResponse userInfo = ctx.client().usersInfo(i -> i.user(sched.getUserId()));
-				Date myDate = Date.from(sched.getSendAt());
-				SimpleDateFormat formatter = new SimpleDateFormat("EEE, d MMM yyyy K:mm a, z");
-				String formattedDate = formatter.format(myDate);
+				Instant instant = sched.getSendAt().atOffset(ZoneOffset.of("-4")).toInstant();
+				Date myDate = Date.from(instant);
+				SimpleDateFormat formatter = new SimpleDateFormat("dd MMM yyyy");
+				String formattedDate = formatter.format(myDate) + " 9AM ET";
 				appHomeBlocks.add(section(section -> section.text(markdownText(mt -> mt.text("*:soon:*  " + userInfo.getUser().getRealName() + "  :clock1:  " + formattedDate)))));
 			} catch (IOException e) {
 				e.printStackTrace();

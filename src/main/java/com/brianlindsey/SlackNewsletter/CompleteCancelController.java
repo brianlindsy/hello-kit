@@ -10,7 +10,7 @@ public class CompleteCancelController {
 	
 	@RequestMapping("/slack/oauth/completion")
 	public String complete() {
-		return "Thanks for installing Hello Kit!";
+		return "Thanks for installing Hello Kit! Please visit gethellokit.com/install-complete";
 	}
 	
 	@RequestMapping("/slack/oauth/cancellation")

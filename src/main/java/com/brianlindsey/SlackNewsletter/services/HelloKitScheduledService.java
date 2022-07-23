@@ -15,11 +15,15 @@ import static com.slack.api.model.view.Views.viewSubmit;
 import static com.slack.api.model.view.Views.viewTitle;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -50,10 +54,10 @@ public class HelloKitScheduledService {
 		helloKitSchedRepo.save(helloKitSched);
 	}
 
-	public HelloKitScheduled createNewHelloKitScheduled(LocalDate postAtDate, String username, String selectedKitId, String greeting, String teamId) throws NumberFormatException, Exception {
+	public HelloKitScheduled createNewHelloKitScheduled(ZonedDateTime postAtDate, String username, String selectedKitId, String greeting, String teamId) throws NumberFormatException, Exception {
 		HelloKitScheduled helloKitScheduled = new HelloKitScheduled();
-		Instant postAtInstant = findToPostInstant(postAtDate);
-		helloKitScheduled.setSendAt(postAtInstant);
+		ZonedDateTime postAtInstant = findToPostInstant(postAtDate);
+		helloKitScheduled.setSendAt(postAtInstant.toInstant());
 		helloKitScheduled.setUserId(username);
 		helloKitScheduled.setGreeting(greeting);
 		helloKitScheduled.setCreatedAt(Instant.now());
@@ -136,15 +140,14 @@ public class HelloKitScheduledService {
 		}
 	}
 	
-	private Instant findToPostInstant(LocalDate postAtDate) {
-		if(postAtDate.isEqual(LocalDate.now())) {
-			return Instant.now().plusSeconds(15);
+	//TODO: update for when start date is the next year
+	private ZonedDateTime findToPostInstant(ZonedDateTime postAtDate) {
+		if(postAtDate.getDayOfYear() == LocalDateTime.now().getDayOfYear()
+				&& postAtDate.getYear() == LocalDateTime.now().getYear()) {
+			return ZonedDateTime.now().plusSeconds(30);
 		}
-		LocalTime tomrrowTime = LocalTime.NOON.minusMinutes(180);
-		LocalDate tomorrowDate = LocalDate.now().plusDays(1);
-		LocalDateTime tomorrow = LocalDateTime.of(tomorrowDate, tomrrowTime);
 		
-		return tomorrow.toInstant(ZoneOffset.of("-0400"));
+		return postAtDate.withZoneSameInstant(ZoneId.of("America/New_York"));
 	}
 	
 	private String createHelloKitMessageGreetingText(String realName) {
