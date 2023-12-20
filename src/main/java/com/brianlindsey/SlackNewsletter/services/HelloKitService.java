@@ -72,7 +72,7 @@ public class HelloKitService {
 		+ realName +" :tada: \nHere is a little about them. :point_down:" + giphyUrl)))));
 		message.add(divider());
 		for(Map.Entry<String, String> entry : questionAnswers.entrySet()) {
-			if(entry.getValue() != null && !entry.getValue().isBlank()) {
+			if(entry.getValue() != null && !entry.getValue().equals("")) {
 				message.add(section(section -> section.text(markdownText(mt -> mt.text("*" + entry.getKey() + "*" + "\n" + entry.getValue())))));
 			}
 		}

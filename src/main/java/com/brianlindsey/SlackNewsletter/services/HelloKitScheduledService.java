@@ -157,7 +157,7 @@ public class HelloKitScheduledService {
 	}
 	
 	private String createTeamMessageGreetingText(String teamGreeting) {
-		if(teamGreeting == null || teamGreeting.isBlank()) {
+		if(teamGreeting == null || teamGreeting.equals("")) {
 			return "Welcome to the team!";
 		}
 		

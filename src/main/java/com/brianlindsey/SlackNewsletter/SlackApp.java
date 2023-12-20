@@ -46,9 +46,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
 public class SlackApp {
@@ -57,11 +60,11 @@ public class SlackApp {
 	@Autowired HelloKitScheduledService helloKitSchedService;
 	@Autowired PromptService promptService;
 	@Autowired QuestionService questionService;
-	@Autowired @Lazy InstallationService installService;
+	@Autowired InstallationService installationService;
 	
 	public String getBotAccessToken(String teamId) {
-		Bot bot = installService.findBot(null, teamId);
-		
+		Bot bot = installationService.findBot(null, teamId);
+
 		return bot.getBotAccessToken();
 	}
 	
@@ -117,7 +120,7 @@ public class SlackApp {
 	}
 	
 	@Bean
-	public App initSlackApp(InstallationService installationService, OAuthStateService stateService) {
+	public App initSlackApp(OAuthStateService stateService, InstallationService installationService) {
 		App app = new App().asOAuthApp(true);
 		app.service(installationService);
 	    app.service(stateService);
@@ -125,6 +128,7 @@ public class SlackApp {
 		app.event(AppHomeOpenedEvent.class, (payload, ctx) -> {
 			List<HelloKitScheduled> schedPendingNotSent = helloKitSchedService.getPendingNotSent(payload.getTeamId());
 			System.out.println(schedPendingNotSent);
+			System.out.println("Home screen");
 			View appHomeView = AppHome.buildAppHome(ctx, schedPendingNotSent);
 			try {
 				AppHome.publishView(ctx, payload.getEvent().getUser(), appHomeView);

@@ -20,4 +20,4 @@ SLACK_OAUTH_CANCELLATION_URL=
 
 SLACK_INSTALL_BUCKET=
 
-spring.datasource.initialization-mode=
+#spring.datasource.initialization-mode=
