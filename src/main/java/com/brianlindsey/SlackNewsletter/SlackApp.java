@@ -10,6 +10,7 @@ import com.brianlindsey.SlackNewsletter.services.HelloKitScheduledService;
 import com.brianlindsey.SlackNewsletter.services.HelloKitService;
 import com.brianlindsey.SlackNewsletter.services.PromptService;
 import com.brianlindsey.SlackNewsletter.services.QuestionService;
+import com.brianlindsey.SlackNewsletter.utils.Utils;
 import com.slack.api.bolt.App;
 import com.slack.api.bolt.context.Context;
 import com.slack.api.bolt.context.builtin.ActionContext;
@@ -47,6 +48,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -129,7 +131,7 @@ public class SlackApp {
 			List<HelloKitScheduled> schedPendingNotSent = helloKitSchedService.getPendingNotSent(payload.getTeamId());
 			System.out.println(schedPendingNotSent);
 			System.out.println("Home screen");
-			View appHomeView = AppHome.buildAppHome(ctx, schedPendingNotSent);
+			View appHomeView = AppHome.buildAppHome(ctx, payload, schedPendingNotSent);
 			try {
 				AppHome.publishView(ctx, payload.getEvent().getUser(), appHomeView);
 			} catch (IOException io) {
@@ -153,6 +155,7 @@ public class SlackApp {
 							kitName = value.getValue();
 						}
 						if(value.getType().equals("multi_conversations_select")) {
+							System.out.println("multi_conversations_select " + value.getSelectedConversations());
 							List<String> channelIds = value.getSelectedConversations();
 							channelId = channelIds.get(0);
 						}
@@ -261,11 +264,9 @@ public class SlackApp {
 			} catch (IOException | SlackApiException e) {
 				e.printStackTrace();
 			}
-			String realName = userInfo.getUser().getName();
+			String slackName = Utils.getSlackUserName(userInfo);
 			
-			String giphyUrl = GiphyService.getGiphyUrl("welcome to the team");
-			
-			List<LayoutBlock> welcomeMessage = helloKitService.postWelcomeMessage(questionsAnswers, realName, giphyUrl);
+			List<LayoutBlock> welcomeMessage = helloKitService.postWelcomeMessage(questionsAnswers, slackName);
 			
 			HelloKit helloKit = helloKitSched.getHelloKit();
 			try {

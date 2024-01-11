@@ -1,41 +1,11 @@
 package com.brianlindsey.SlackNewsletter.services;
 
-import static com.slack.api.model.block.Blocks.actions;
-import static com.slack.api.model.block.Blocks.input;
-import static com.slack.api.model.block.Blocks.section;
-import static com.slack.api.model.block.Blocks.divider;
-import static com.slack.api.model.block.composition.BlockCompositions.markdownText;
-import static com.slack.api.model.block.composition.BlockCompositions.plainText;
-import static com.slack.api.model.block.element.BlockElements.asElements;
-import static com.slack.api.model.block.element.BlockElements.button;
-import static com.slack.api.model.block.element.BlockElements.plainTextInput;
-import static com.slack.api.model.view.Views.view;
-import static com.slack.api.model.view.Views.viewClose;
-import static com.slack.api.model.view.Views.viewSubmit;
-import static com.slack.api.model.view.Views.viewTitle;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.temporal.TemporalUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.brianlindsey.SlackNewsletter.models.HelloKit;
 import com.brianlindsey.SlackNewsletter.models.HelloKitScheduled;
 import com.brianlindsey.SlackNewsletter.models.Question;
 import com.brianlindsey.SlackNewsletter.repositories.HelloKitRepository;
 import com.brianlindsey.SlackNewsletter.repositories.HelloKitScheduledRepository;
+import com.brianlindsey.SlackNewsletter.utils.Utils;
 import com.slack.api.bolt.context.builtin.ActionContext;
 import com.slack.api.bolt.context.builtin.ViewSubmissionContext;
 import com.slack.api.methods.SlackApiException;
@@ -43,6 +13,23 @@ import com.slack.api.methods.response.chat.ChatScheduleMessageResponse;
 import com.slack.api.methods.response.users.UsersInfoResponse;
 import com.slack.api.model.block.LayoutBlock;
 import com.slack.api.model.view.View;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static com.slack.api.model.block.Blocks.*;
+import static com.slack.api.model.block.composition.BlockCompositions.markdownText;
+import static com.slack.api.model.block.composition.BlockCompositions.plainText;
+import static com.slack.api.model.block.element.BlockElements.*;
+import static com.slack.api.model.view.Views.*;
 
 @Service
 public class HelloKitScheduledService {
@@ -84,14 +71,12 @@ public class HelloKitScheduledService {
 	
 	public List<LayoutBlock> createHelloMessage(ViewSubmissionContext ctx, String userId) {
 		List<LayoutBlock> message = new ArrayList<LayoutBlock>();
-		UsersInfoResponse userInfo = null;
 		try {
-			userInfo = ctx.client().usersInfo(i -> i.user(userId));
+			UsersInfoResponse userInfo = ctx.client().usersInfo(i -> i.user(userId));
+			message.add(section(section -> section.text(markdownText(mt -> mt.text(createHelloKitMessageGreetingText(Utils.getRealUserName(userInfo)))))));
 		} catch (IOException | SlackApiException e) {
 			e.printStackTrace();
 		}
-		String realName = userInfo.getUser().getRealName();
-		message.add(section(section -> section.text(markdownText(mt -> mt.text(createHelloKitMessageGreetingText(realName))))));
 		message.add(actions(actions -> actions
 			      .elements(asElements(
 			    	        button(b -> b.text(plainText(pt -> pt.emoji(true).text("Questionnaire!"))).actionId("open_hello_kit_questionnaire"))
@@ -151,7 +136,12 @@ public class HelloKitScheduledService {
 	}
 	
 	private String createHelloKitMessageGreetingText(String realName) {
-		return "*Hi, " + realName + "!* Your team wants to get to know you a bit more. Fill out " +
+		if (realName != null && realName != "") {
+			return "*Hi, " + realName + "!* Your team wants to get to know you a bit more. Fill out " +
+					"these questions and hit submit :point_down:. Your responses will be posted " +
+					"to a channel where your teammates can learn more about you! :smile:";
+		}
+		return "*Hi! Your team wants to get to know you a bit more. Fill out " +
 				"these questions and hit submit :point_down:. Your responses will be posted " +
 				"to a channel where your teammates can learn more about you! :smile:";
 	}

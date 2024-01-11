@@ -66,10 +66,10 @@ public class HelloKitService {
 		return found;
 	}
 	
-	public List<LayoutBlock> postWelcomeMessage(Map<String, String> questionAnswers, String realName, String giphyUrl) {
+	public List<LayoutBlock> postWelcomeMessage(Map<String, String> questionAnswers, String slackName) {
 		List<LayoutBlock> message = new ArrayList<LayoutBlock>();
 		message.add(section(section -> section.text(markdownText(mt -> mt.text("Hello all!  :wave:  Please give a warm welcome to :tada: @"
-		+ realName +" :tada: \nHere is a little about them. :point_down:" + giphyUrl)))));
+		+ slackName +" :tada: \nHere is a little about them. :point_down:")))));
 		message.add(divider());
 		for(Map.Entry<String, String> entry : questionAnswers.entrySet()) {
 			if(entry.getValue() != null && !entry.getValue().equals("")) {

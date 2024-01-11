@@ -3,12 +3,11 @@ package com.brianlindsey.SlackNewsletter;
 import com.brianlindsey.SlackNewsletter.models.HelloKit;
 import com.brianlindsey.SlackNewsletter.models.HelloKitScheduled;
 import com.brianlindsey.SlackNewsletter.models.Prompt;
-import com.slack.api.bolt.context.Context;
+import com.brianlindsey.SlackNewsletter.utils.Utils;
+import com.slack.api.app_backend.events.payload.EventsApiPayload;
 import com.slack.api.bolt.context.builtin.ActionContext;
 import com.slack.api.bolt.context.builtin.EventContext;
 import com.slack.api.bolt.context.builtin.ViewSubmissionContext;
-import com.slack.api.bolt.model.Bot;
-import com.slack.api.bolt.service.InstallationService;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.users.UsersInfoResponse;
 import com.slack.api.methods.response.views.ViewsOpenResponse;
@@ -18,25 +17,21 @@ import com.slack.api.methods.response.views.ViewsUpdateResponse;
 import com.slack.api.model.block.LayoutBlock;
 import com.slack.api.model.block.composition.OptionObject;
 import com.slack.api.model.block.composition.PlainTextObject;
+import com.slack.api.model.event.AppHomeOpenedEvent;
 import com.slack.api.model.view.View;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import static com.slack.api.model.block.Blocks.*;
+import static com.slack.api.model.block.composition.BlockCompositions.markdownText;
+import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import static com.slack.api.model.block.element.BlockElements.*;
-import static com.slack.api.model.block.composition.BlockCompositions.*;
 import static com.slack.api.model.view.Views.*;
 
 public class AppHome {
@@ -83,9 +78,14 @@ public class AppHome {
 		return resp;
 	}
 
-	public static View buildAppHome(EventContext ctx, List<HelloKitScheduled> scheduledNotSent) {
+	public static View buildAppHome(EventContext ctx, EventsApiPayload<AppHomeOpenedEvent> payload, List<HelloKitScheduled> scheduledNotSent) throws SlackApiException, IOException {
 		List<LayoutBlock> appHomeBlocks = new ArrayList<LayoutBlock>();
-		appHomeBlocks.add(header(header -> header.text(plainText(mt -> mt.text(":wave: Welcome to HelloKit")))));
+		AppHomeOpenedEvent event = payload.getEvent();
+		String userId = event.getUser();
+		UsersInfoResponse homeScreenUserInfo = ctx.client().usersInfo(i -> i.user(userId));
+		System.out.println(homeScreenUserInfo);
+		String name = Utils.getRealUserName(homeScreenUserInfo);
+		appHomeBlocks.add(header(header -> header.text(plainText(mt -> mt.text(":wave: Welcome to Hello Kit, " + name)))));
 		appHomeBlocks.add(divider());
 		appHomeBlocks.add(actions(actions -> actions
 				.elements(asElements(
@@ -103,7 +103,7 @@ public class AppHome {
 				Date myDate = Date.from(instant);
 				SimpleDateFormat formatter = new SimpleDateFormat("dd MMM yyyy");
 				String formattedDate = formatter.format(myDate) + " 9AM ET";
-				appHomeBlocks.add(section(section -> section.text(markdownText(mt -> mt.text("*:soon:*  " + userInfo.getUser().getRealName() + "  :clock1:  " + formattedDate)))));
+				appHomeBlocks.add(section(section -> section.text(markdownText(mt -> mt.text("*:soon:*  " + Utils.getRealUserName(userInfo) + "  :clock1:  " + formattedDate)))));
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (SlackApiException e) {
@@ -235,7 +235,7 @@ public class AppHome {
 						input(input -> input.label(plainText(pt -> pt.text("Hello Kit to send:"))).optional(false)
 								.element(staticSelect(sl -> sl.options(helloKitChoices)))),
 						input(input -> input.label(plainText(pt -> pt.text("Initial Greeting:"))).optional(true)
-								.element(plainTextInput(pti -> pti.multiline(true).placeholder(plainText(pt -> pt.text("Give a warm welcome for the new teammate here!"))))))
+								.element(plainTextInput(pti -> pti.multiline(true).placeholder(plainText(pt -> pt.text("Give a warm welcome for the new teammate here! This will be shown to the new teammate only when we message them to answer the questions."))))))
 						))
 				);
 
