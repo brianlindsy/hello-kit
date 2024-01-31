@@ -90,6 +90,9 @@ public class HelloKitScheduledService {
 		List<LayoutBlock> message = new ArrayList<LayoutBlock>();
 		message.add(section(section -> section.text(markdownText(mt -> mt.text(createTeamMessageGreetingText(helloKitSched.getGreeting()))))));
 		message.add(divider());
+		String channelName = Utils.getChannelName(ctx, helloKitSched.getHelloKit().getChannelId());
+		message.add(section(section -> section.text(markdownText(mt -> mt.text("When submitted, this will be posted to " + channelName)))));
+		message.add(divider());
 		List<Question> questionsToAsk = helloKitSched.getHelloKit().getQuestions();
 		for(Question q : questionsToAsk) {
 			message.add(input(input -> input.label(plainText(pt -> pt.text(q.getPrompt().getPromptText()))).optional(true)

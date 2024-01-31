@@ -203,7 +203,6 @@ public class SlackApp {
 			try {
 				ZonedDateTime zonedDateTime = ZonedDateTime.parse(postAtDate + "T09:00:00-04:00[America/New_York]");
 				String teamId = req.getPayload().getTeam().getId();
-				// TODO: check this is doing what I think its doing
 				HelloKitScheduled scheduled = helloKitSchedService.createNewHelloKitScheduled(zonedDateTime, username, selectedKitId, greeting, teamId);
 				helloKitSchedService.createScheduledMessage(ctx, scheduled);
 			} catch (NumberFormatException e) {

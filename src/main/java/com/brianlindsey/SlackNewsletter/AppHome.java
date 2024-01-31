@@ -19,6 +19,7 @@ import com.slack.api.model.block.composition.OptionObject;
 import com.slack.api.model.block.composition.PlainTextObject;
 import com.slack.api.model.event.AppHomeOpenedEvent;
 import com.slack.api.model.view.View;
+import okio.Options;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -177,17 +178,17 @@ public class AppHome {
 		modalFirstSection.add(divider());
 		modalFirstSection.add(input(input -> input.hint(plainText("Ex. Engineering Welcome, Sales Welcome, New Hire Team Welcome")).label(plainText(pt -> pt.text("Name your new Hello Kit:")))
 								.element(plainTextInput(pti -> pti))));
-		modalFirstSection.add(input(input -> input.label(plainText(pt -> pt.text("Channel to post Hello to:")))
+		modalFirstSection.add(input(input -> input.hint(plainText("This is the channel that will be posted to when the new team members answers the questions.")).label(plainText(pt -> pt.text("Channel to post Hello to:")))
 								.element(multiConversationsSelect(mcs -> mcs.placeholder(plainText("Select a channel"))))));
 		modalFirstSection.add(divider());
-		modalFirstSection.add(section(section -> section.text(markdownText(mt -> mt.text("*Choose questions to have the new hire answer*")))));
+		modalFirstSection.add(section(section -> section.text(markdownText(mt -> mt.text("*Choose questions for the new team member.*")))));
 		
 		modalFirstSection.add(actions(actions -> actions
 				.elements(asElements(
 						button(b -> b.text(plainText(pt -> pt.emoji(true).text("Add custom question     :heavy_plus_sign:"))).actionId("add_new_question")))
 				)));
 		if(!custom.isEmpty()) {
-			modalFirstSection.add(section(section -> section.text(markdownText("Custom Questions (Maximum 10 custom questions)"))
+			modalFirstSection.add(section(section -> section.text(markdownText("Custom Questions (Maximum 10 custom questions per workspace)"))
 					.accessory(checkboxes(cb -> cb.actionId("question-group-custom").options(createCustomQuestionCheckboxes(custom))))));
 		}
 		modalFirstSection.add(section(section -> section.text(markdownText("Personal Introduction"))
@@ -221,6 +222,10 @@ public class AppHome {
 
 	public static View buildSendKitModal(List<HelloKit> helloKits) {
 		List<OptionObject> helloKitChoices = createKitDropdown(helloKits);
+		OptionObject oo = new OptionObject();
+		oo.setText(plainText("Notify Team Members"));
+		List<OptionObject> notifyTeamMembers = new ArrayList<OptionObject>();
+		notifyTeamMembers.add(oo);
 		View appHomeView = view(v -> v
 				.type("modal").callbackId("send_hello_kit_submit")
 				.title(viewTitle(vt -> vt.type("plain_text").text("Send a Hello Kit")))
@@ -234,6 +239,11 @@ public class AppHome {
 								.element(datePicker(dp -> dp))),
 						input(input -> input.label(plainText(pt -> pt.text("Hello Kit to send:"))).optional(false)
 								.element(staticSelect(sl -> sl.options(helloKitChoices)))),
+						input(input -> input.hint(plainText("Please identify the team members your new hire will be collaborating with closely. Simply enter the Slack usernames.")).label(plainText(pt -> pt.text("Team Collaboration Circle"))).optional(true)
+								.element(multiUsersSelect(mus -> mus.placeholder(plainText(pt -> pt.text("Team Collaboration Circle")))))),
+						checkboxes(cb -> cb.initialOptions(notifyTeamMembers)), // TODO: finsih this
+						input(input -> input.hint(plainText("Add a team member this person can reach out to for questions during their onboarding.")).label(plainText(pt -> pt.text("Onboarding buddy"))).optional(true)
+								.element(multiUsersSelect(mus -> mus.placeholder(plainText(pt -> pt.text("Onboarding buddy")))))),
 						input(input -> input.label(plainText(pt -> pt.text("Initial Greeting:"))).optional(true)
 								.element(plainTextInput(pti -> pti.multiline(true).placeholder(plainText(pt -> pt.text("Give a warm welcome for the new teammate here! This will be shown to the new teammate only when we message them to answer the questions."))))))
 						))
